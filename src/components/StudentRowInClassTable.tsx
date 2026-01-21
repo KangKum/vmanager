@@ -11,7 +11,7 @@ const StudentRowInClassTable = ({ idx, onDeleteStudentRow }: { tableId: number; 
       <div className="border-r w-[20%] h-full flex justify-center items-center">
         <input className="w-full h-full text-center border-0 outline-none" />
       </div>
-      <button className="w-[10%] h-full flex justify-center items-center cursor-pointer" onClick={onDeleteStudentRow}>
+      <button className="w-[10%] h-full flex justify-center items-center" onClick={onDeleteStudentRow}>
         -
       </button>
     </div>

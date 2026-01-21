@@ -40,7 +40,7 @@ const ClassTable = ({
   return (
     <div className={`flex flex-col w-[22%] mx-[1.5%] my-3`}>
       <div className="border h-8 text-lg flex">
-        <button className="levelBtn w-[10%] cursor-pointer font-bold" onClick={handleLevelClick}>
+        <button className="levelBtn w-[10%] font-bold" onClick={handleLevelClick}>
           {currentLevel}
         </button>
         <div className="w-[80%] h-full flex justify-center items-center">
@@ -69,7 +69,7 @@ const ClassTable = ({
           onDeleteStudentRow={() => handleDeleteStudent(student.studentId)}
         />
       ))}
-      <button className="border-b border-x bg-gray-300 cursor-pointer" onClick={handleAddStudent}>
+      <button className="border-b border-x bg-gray-300" onClick={handleAddStudent}>
         학생 추가
       </button>
     </div>

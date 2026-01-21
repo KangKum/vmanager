@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+textarea {
+  resize: none;
+  overflow: hidden;
+}
+
+button {
+  cursor: pointer;
+}

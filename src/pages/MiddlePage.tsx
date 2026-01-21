@@ -28,7 +28,7 @@ const MiddlePage = () => {
   return (
     <div className="w-full flex flex-col">
       <button
-        className="bg-gray-300 p-2 cursor-pointer"
+        className="bg-gray-300 p-2"
         onClick={() => {
           setMiddleClasses((prev) => [...prev, { tableId: nextId, currentLevel: 1 }]);
           setNextId((prev) => prev + 1);
@@ -36,7 +36,7 @@ const MiddlePage = () => {
       >
         수업 개설
       </button>
-      <button className="bg-gray-300 p-2 cursor-pointer" onClick={handleSort}>
+      <button className="bg-gray-300 p-2" onClick={handleSort}>
         정렬
       </button>
 
