@@ -16,6 +16,7 @@ interface TeacherTableProps {
   onUpdateTeacherName: (id: number, name: string) => void;
   onUpdateScheduleCell: (teacherId: number, day: DayOfWeek, timeSlot: number, content: string) => void;
   onAddTimeRow: () => void;
+  onDeleteTimeRow: (timeSlot: number) => void;
   getCellContent: (teacherId: number, day: DayOfWeek, timeSlot: number) => string;
 }
 
@@ -28,10 +29,35 @@ const TeacherTable = ({
   onUpdateTeacherName,
   onUpdateScheduleCell,
   onAddTimeRow,
+  onDeleteTimeRow,
   getCellContent,
 }: TeacherTableProps) => {
   const days: DayOfWeek[] = ["월", "화", "수", "목", "금", "토", "일"];
-  const tempTime = ["1:00-1:30", "1:30-2:00", "2:00-2:30", "2:30-3:00", "3:00-3:30", "3:30-4:00", "4:00-4:30", "4:30-5:00"];
+
+  // 기본 시간 배열 동적 생성 (1:00부터 30분 간격)
+  const generateDefaultTimes = useMemo(() => {
+    const times = [];
+    let hour = 1;
+    let minute = 0;
+
+    for (let i = 0; i < timeSettings.timeRows; i++) {
+      const startH = hour;
+      const startM = minute;
+
+      minute += 30;
+      if (minute >= 60) {
+        hour++;
+        minute = 0;
+      }
+
+      const endH = hour;
+      const endM = minute;
+
+      times.push(`${startH}:${startM.toString().padStart(2, "0")}-${endH}:${endM.toString().padStart(2, "0")}`);
+    }
+
+    return times;
+  }, [timeSettings.timeRows]);
 
   const calculateTimes = useMemo(() => {
     const { startHour, startMinute, interval, timeRows } = timeSettings;
@@ -78,18 +104,28 @@ const TeacherTable = ({
     <div className="flex ml-2 mt-2 mr-2">
       {/* 시간 열 (첫 번째 셀은 선생님 이름) */}
       <div className="flex flex-col w-24">
-        <div className="border h-7 flex items-center">
+        <div className="border w-full h-7 flex items-center">
           {teacherMode ? (
             <button className="w-full h-full" onClick={() => onDeleteTeacher(teacher.id)}>
               X
             </button>
           ) : (
-            <input className="w-full h-full outline-none px-1" value={teacher.name} onChange={(e) => onUpdateTeacherName(teacher.id, e.target.value)} />
+            <input
+              className="w-full h-full outline-none px-1 text-center"
+              placeholder="선생님이름"
+              value={teacher.name}
+              onChange={(e) => onUpdateTeacherName(teacher.id, e.target.value)}
+            />
           )}
         </div>
         {Array.from({ length: timeSettings.timeRows }).map((_, index) => (
-          <div key={index} className="border-x border-b h-7 flex items-center justify-center text-xs">
-            {calculateTimes[index] || tempTime[index]}
+          <div key={index} className="border-x border-b h-7 flex items-center text-sm">
+            {timeMode && (
+              <button className="w-6 h-full text-red-500" onClick={() => onDeleteTimeRow(index)}>
+                X
+              </button>
+            )}
+            <div className="flex-1 flex items-center justify-center">{calculateTimes[index] || generateDefaultTimes[index]}</div>
           </div>
         ))}
         {timeMode && (

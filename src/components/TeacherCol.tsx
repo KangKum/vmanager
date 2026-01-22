@@ -24,19 +24,28 @@ const TeacherCol = ({
   getCellContent,
 }: TeacherColProps) => {
   return (
-    <div className="teacherColumn w-24">
+    <div className="teacherColumn w-26">
       <div className="nameDiv border flex h-7">
         {teacherMode ? (
           <button className="w-full h-full" onClick={onDelete}>
             X
           </button>
         ) : (
-          <input className="w-full h-full outline-none" value={teacherName} onChange={(e) => onUpdateName(e.target.value)} />
+          <input
+            className="w-full h-full text-center outline-none"
+            placeholder="선생님이름"
+            value={teacherName}
+            onChange={(e) => onUpdateName(e.target.value)}
+          />
         )}
       </div>
       {Array.from({ length: timeRows }).map((_, idx) => (
-        <div key={idx} className="border-x border-b w-24 h-7">
-          <textarea className="w-full h-full outline-none resize-none" value={getCellContent(idx)} onChange={(e) => onUpdateCell(idx, e.target.value)} />
+        <div key={idx} className="border-x border-b w-26 h-7 text-center">
+          <textarea
+            className="w-full h-full text-center outline-none resize-none"
+            value={getCellContent(idx)}
+            onChange={(e) => onUpdateCell(idx, e.target.value)}
+          />
         </div>
       ))}
     </div>

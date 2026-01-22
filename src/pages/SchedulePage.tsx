@@ -58,6 +58,20 @@ const SchedulePage = () => {
     setTimeSettings((prev) => ({ ...prev, timeRows: prev.timeRows + 1 }));
   };
 
+  // 시간 행 삭제 함수
+  const handleDeleteTimeRow = (timeSlot: number) => {
+    if (confirm("정말 삭제하시겠습니까?")) {
+      // 해당 timeSlot의 스케줄 삭제 및 이후 timeSlot들 재조정
+      setSchedules((prev) =>
+        prev
+          .filter((schedule) => schedule.timeSlot !== timeSlot)
+          .map((schedule) => (schedule.timeSlot > timeSlot ? { ...schedule, timeSlot: schedule.timeSlot - 1 } : schedule)),
+      );
+      // timeRows 감소
+      setTimeSettings((prev) => ({ ...prev, timeRows: Math.max(1, prev.timeRows - 1) }));
+    }
+  };
+
   // 헬퍼 함수들
   const getCellContent = (teacherId: number, day: DayOfWeek, timeSlot: number): string => {
     const cell = schedules.find((s) => s.teacherId === teacherId && s.day === day && s.timeSlot === timeSlot);
@@ -114,6 +128,7 @@ const SchedulePage = () => {
               onUpdateTeacherName={handleUpdateTeacherName}
               onUpdateScheduleCell={handleUpdateScheduleCell}
               onAddTimeRow={handleAddTimeRow}
+              onDeleteTimeRow={handleDeleteTimeRow}
               getCellContent={getCellContent}
               getTeacherName={getTeacherName}
             />
@@ -132,6 +147,7 @@ const SchedulePage = () => {
               onUpdateTeacherName={handleUpdateTeacherName}
               onUpdateScheduleCell={handleUpdateScheduleCell}
               onAddTimeRow={handleAddTimeRow}
+              onDeleteTimeRow={handleDeleteTimeRow}
               getCellContent={getCellContent}
             />
           ))}

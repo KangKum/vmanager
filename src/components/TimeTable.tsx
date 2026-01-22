@@ -19,6 +19,7 @@ interface TimeTableProps {
   onUpdateTeacherName: (id: number, name: string) => void;
   onUpdateScheduleCell: (teacherId: number, day: DayOfWeek, timeSlot: number, content: string) => void;
   onAddTimeRow: () => void;
+  onDeleteTimeRow: (timeSlot: number) => void;
   getCellContent: (teacherId: number, day: DayOfWeek, timeSlot: number) => string;
   getTeacherName: (teacherId: number) => string;
 }
@@ -34,10 +35,34 @@ const TimeTable = ({
   onUpdateTeacherName,
   onUpdateScheduleCell,
   onAddTimeRow,
+  onDeleteTimeRow,
   getCellContent,
   getTeacherName,
 }: TimeTableProps) => {
-  const tempTime = ["1:00-1:30", "1:30-2:00", "2:00-2:30", "2:30-3:00", "3:00-3:30", "3:30-4:00", "4:00-4:30", "4:30-5:00"];
+  // 기본 시간 배열 동적 생성 (1:00부터 30분 간격)
+  const generateDefaultTimes = useMemo(() => {
+    const times = [];
+    let hour = 1;
+    let minute = 0;
+
+    for (let i = 0; i < timeSettings.timeRows; i++) {
+      const startH = hour;
+      const startM = minute;
+
+      minute += 30;
+      if (minute >= 60) {
+        hour++;
+        minute = 0;
+      }
+
+      const endH = hour;
+      const endM = minute;
+
+      times.push(`${startH}:${startM.toString().padStart(2, "0")}-${endH}:${endM.toString().padStart(2, "0")}`);
+    }
+
+    return times;
+  }, [timeSettings.timeRows]);
 
   const calculateTimes = useMemo(() => {
     const { startHour, startMinute, interval, timeRows } = timeSettings;
@@ -82,13 +107,19 @@ const TimeTable = ({
 
   return (
     <div className="flex ml-2 mt-2 mr-2">
-      <div className="firstCol flex flex-col w-24">
-        <div className="dayDiv border h-7">
-          <input value={day} className="w-full h-full outline-none" readOnly />
+      <div className="firstCol flex flex-col w-22">
+        <div className="dayDiv border h-7 w-full">
+          <button className="dayBtn w-full h-full outline-none text-center">{day}</button>
         </div>
         {Array.from({ length: timeSettings.timeRows }).map((_, index) => (
-          <div key={index} className="border-x border-b h-7">
-            <input value={calculateTimes[index] || tempTime[index]} className="w-full h-full outline-none" readOnly />
+          <div key={index} className="border-x border-b h-7 flex">
+            {timeMode ? (
+              <button className="w-full h-full text-center" onClick={() => onDeleteTimeRow(index)}>
+                X
+              </button>
+            ) : (
+              <input value={calculateTimes[index] || generateDefaultTimes[index]} className="w-full h-full outline-none text-center text-sm" readOnly />
+            )}
           </div>
         ))}
         {timeMode && (
