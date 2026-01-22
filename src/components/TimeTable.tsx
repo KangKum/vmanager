@@ -17,10 +17,19 @@ const TimeTable = ({
   startMinute: string;
   interval: string;
 }) => {
-  const [teacherColumns, setTeacherColumns] = useState<number>(1);
+  const [teacherColumns, setTeacherColumns] = useState<number[]>([0]);
+  const [nextTeacherId, setNextTeacherId] = useState(1);
   const [timeRows, setTimeRows] = useState<number>(8);
-  const minute = ["00", "15", "30", "45"];
-  const hour = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+  const tempTime = ["1:00-1:30", "1:30-2:00", "2:00-2:30", "2:30-3:00", "3:00-3:30", "3:30-4:00", "4:00-4:30", "4:30-5:00"];
+
+  const handleAddColumn = () => {
+    setTeacherColumns((prev) => [...prev, nextTeacherId]);
+    setNextTeacherId((prev) => prev + 1);
+  };
+
+  const handleDeleteColumn = (id: number) => {
+    if (confirm("정말 삭제하시겠습니까?")) setTeacherColumns((prev) => prev.filter((colId) => colId !== id));
+  };
 
   const calculateTimes = useMemo(() => {
     if (!startHour || !startMinute || !interval) return [];
@@ -63,33 +72,32 @@ const TimeTable = ({
   }, [startHour, startMinute, interval, timeRows]);
 
   return (
-    <div className="flex ml-2 mt-2">
+    <div className="flex ml-2 mt-2 mr-2">
       <div className="firstCol flex flex-col w-24">
         <div className="dayDiv border h-7">
           <input placeholder={day} className="w-full h-full outline-none" />
         </div>
-        {calculateTimes.length > 0
-          ? calculateTimes.map((time, index) => (
-              <div key={index} className="border-x border-b h-7">
-                <input value={time} className="w-full h-full outline-none" readOnly />
-              </div>
-            ))
-          : Array.from({ length: timeRows }).map((_, index) => (
-              <div key={index} className="border-x border-b h-7">
-                <input className="w-full h-full outline-none" />
-              </div>
-            ))}
+        {Array.from({ length: timeRows }).map((_, index) => (
+          <div key={index} className="border-x border-b h-7">
+            <input
+              value={calculateTimes[index] || ""}
+              placeholder={tempTime[index]}
+              className="w-full h-full outline-none"
+              readOnly={calculateTimes.length > 0}
+            />
+          </div>
+        ))}
         {timeMode && (
           <button className="w-full h-10 flex justify-center items-center" onClick={() => setTimeRows((prev) => prev + 1)}>
             <CiSquarePlus size={32} />
           </button>
         )}
       </div>
-      {Array.from({ length: teacherColumns }).map((_, idx) => (
-        <TeacherCol key={idx} teacherMode={teacherMode} timeRows={timeRows} />
+      {teacherColumns.map((colId) => (
+        <TeacherCol key={colId} id={colId} teacherMode={teacherMode} timeRows={timeRows} onDelete={() => handleDeleteColumn(colId)} />
       ))}
       {teacherMode && (
-        <button className="w-10 flex justify-center mr-10" onClick={() => setTeacherColumns((prev) => prev + 1)}>
+        <button className="w-10 flex justify-center mr-10" onClick={handleAddColumn}>
           <CiSquarePlus size={32} />
         </button>
       )}

@@ -26,7 +26,7 @@ const HighPage = () => {
   const displayClasses = highClasses;
 
   return (
-    <div className="w-full flex flex-col">
+    <div className="w-full flex flex-col h-full">
       <button
         className="bg-gray-300 p-2"
         onClick={() => {
