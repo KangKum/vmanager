@@ -1,5 +1,6 @@
 import TeacherCol from "./TeacherCol";
-import { useMemo } from "react";
+import CalendarModal from "./CalendarModal";
+import { useMemo, useState } from "react";
 import { CiSquarePlus } from "react-icons/ci";
 import type { Teacher, DayOfWeek } from "../util/interfaces";
 
@@ -14,12 +15,14 @@ interface TimeTableProps {
     interval: string;
     timeRows: number;
   };
+  dayDate: string;
   onAddTeacher: () => void;
   onDeleteTeacher: (id: number) => void;
   onUpdateTeacherName: (id: number, name: string) => void;
   onUpdateScheduleCell: (teacherId: number, day: DayOfWeek, timeSlot: number, content: string) => void;
   onAddTimeRow: () => void;
   onDeleteTimeRow: (timeSlot: number) => void;
+  onUpdateDayDate: (date: string) => void;
   getCellContent: (teacherId: number, day: DayOfWeek, timeSlot: number) => string;
   getTeacherName: (teacherId: number) => string;
 }
@@ -30,15 +33,18 @@ const TimeTable = ({
   timeMode,
   teachers,
   timeSettings,
+  dayDate,
   onAddTeacher,
   onDeleteTeacher,
   onUpdateTeacherName,
   onUpdateScheduleCell,
   onAddTimeRow,
   onDeleteTimeRow,
+  onUpdateDayDate,
   getCellContent,
   getTeacherName,
 }: TimeTableProps) => {
+  const [showCalendar, setShowCalendar] = useState(false);
   // 기본 시간 배열 동적 생성 (1:00부터 30분 간격)
   const generateDefaultTimes = useMemo(() => {
     const times = [];
@@ -107,9 +113,20 @@ const TimeTable = ({
 
   return (
     <div className="flex ml-2 mt-2 mr-2">
+      {showCalendar && (
+        <CalendarModal
+          onSelectDate={(date) => {
+            onUpdateDayDate(date);
+            setShowCalendar(false);
+          }}
+          onClose={() => setShowCalendar(false)}
+        />
+      )}
       <div className="firstCol flex flex-col w-22">
         <div className="dayDiv border h-7 w-full">
-          <button className="dayBtn w-full h-full outline-none text-center">{day}</button>
+          <button className="dayBtn w-full h-full outline-none text-center" onClick={() => setShowCalendar(true)}>
+            {dayDate ? `${day}(${dayDate})` : day}
+          </button>
         </div>
         {Array.from({ length: timeSettings.timeRows }).map((_, index) => (
           <div key={index} className="border-x border-b h-7 flex">

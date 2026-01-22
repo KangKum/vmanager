@@ -20,6 +20,16 @@ const SchedulePage = () => {
     interval: "",
     timeRows: 8,
   });
+  // 각 요일별 날짜 저장
+  const [dayDates, setDayDates] = useState<Record<DayOfWeek, string>>({
+    월: "",
+    화: "",
+    수: "",
+    목: "",
+    금: "",
+    토: "",
+    일: "",
+  });
 
   // 선생님 관리 함수들
   const handleAddTeacher = () => {
@@ -83,6 +93,59 @@ const SchedulePage = () => {
     return teacher ? teacher.name : "";
   };
 
+  const handleUpdateDayDate = (day: DayOfWeek, date: string) => {
+    // 날짜 파싱 (M/D 형식)
+    const [month, dayNum] = date.split("/").map(Number);
+
+    // 요일 인덱스 맵
+    const dayIndexMap: Record<DayOfWeek, number> = {
+      월: 0,
+      화: 1,
+      수: 2,
+      목: 3,
+      금: 4,
+      토: 5,
+      일: 6,
+    };
+
+    const selectedDayIndex = dayIndexMap[day];
+    const baseDate = new Date(new Date().getFullYear(), month - 1, dayNum);
+
+    const newDates: Record<DayOfWeek, string> = { ...dayDates };
+
+    // 월-금 중 하나를 선택한 경우
+    if (selectedDayIndex <= 4) {
+      // 월요일부터 금요일까지 자동 계산
+      (["월", "화", "수", "목", "금"] as DayOfWeek[]).forEach((d) => {
+        const targetIndex = dayIndexMap[d];
+        const diff = targetIndex - selectedDayIndex;
+        const targetDate = new Date(baseDate);
+        targetDate.setDate(baseDate.getDate() + diff);
+        newDates[d] = `${targetDate.getMonth() + 1}/${targetDate.getDate()}`;
+      });
+    }
+    // 토-일 중 하나를 선택한 경우
+    else {
+      if (day === "토") {
+        newDates["토"] = date;
+        const sunday = new Date(baseDate);
+        sunday.setDate(baseDate.getDate() + 1);
+        newDates["일"] = `${sunday.getMonth() + 1}/${sunday.getDate()}`;
+      } else if (day === "일") {
+        newDates["일"] = date;
+        const saturday = new Date(baseDate);
+        saturday.setDate(baseDate.getDate() - 1);
+        newDates["토"] = `${saturday.getMonth() + 1}/${saturday.getDate()}`;
+      }
+    }
+
+    setDayDates(newDates);
+  };
+
+  const getDayDate = (day: DayOfWeek): string => {
+    return dayDates[day];
+  };
+
   const handleTimeApply = (hour: string, minute: string, gap: string) => {
     setTimeSettings((prev) => ({
       ...prev,
@@ -123,12 +186,14 @@ const SchedulePage = () => {
               timeMode={timeMode}
               teachers={teachers}
               timeSettings={timeSettings}
+              dayDate={getDayDate(day)}
               onAddTeacher={handleAddTeacher}
               onDeleteTeacher={handleDeleteTeacher}
               onUpdateTeacherName={handleUpdateTeacherName}
               onUpdateScheduleCell={handleUpdateScheduleCell}
               onAddTimeRow={handleAddTimeRow}
               onDeleteTimeRow={handleDeleteTimeRow}
+              onUpdateDayDate={(date) => handleUpdateDayDate(day, date)}
               getCellContent={getCellContent}
               getTeacherName={getTeacherName}
             />
@@ -143,6 +208,7 @@ const SchedulePage = () => {
               teacherMode={teacherMode}
               timeMode={timeMode}
               timeSettings={timeSettings}
+              dayDates={dayDates}
               onDeleteTeacher={handleDeleteTeacher}
               onUpdateTeacherName={handleUpdateTeacherName}
               onUpdateScheduleCell={handleUpdateScheduleCell}

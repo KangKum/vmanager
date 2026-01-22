@@ -12,6 +12,7 @@ interface TeacherTableProps {
     interval: string;
     timeRows: number;
   };
+  dayDates: Record<DayOfWeek, string>;
   onDeleteTeacher: (id: number) => void;
   onUpdateTeacherName: (id: number, name: string) => void;
   onUpdateScheduleCell: (teacherId: number, day: DayOfWeek, timeSlot: number, content: string) => void;
@@ -25,6 +26,7 @@ const TeacherTable = ({
   teacherMode,
   timeMode,
   timeSettings,
+  dayDates,
   onDeleteTeacher,
   onUpdateTeacherName,
   onUpdateScheduleCell,
@@ -138,7 +140,9 @@ const TeacherTable = ({
       {/* 요일 열들 */}
       {days.map((day) => (
         <div key={day} className="flex flex-col w-24">
-          <div className="border h-7 flex items-center justify-center">{day}</div>
+          <div className="border h-7 flex items-center justify-center text-sm">
+            {dayDates[day] ? `${day}(${dayDates[day]})` : day}
+          </div>
           {Array.from({ length: timeSettings.timeRows }).map((_, timeSlot) => (
             <div key={timeSlot} className="border-x border-b w-24 h-7">
               <textarea
