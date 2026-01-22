@@ -244,6 +244,9 @@ const SchedulePage = () => {
     <div className="flex flex-col h-full">
       {/* 페이지 탭 영역 */}
       <div className="flex items-end bg-gray-100 border-b">
+        <button onClick={() => setShowNewPageModal(true)} className="px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 flex-shrink-0">
+          + 새페이지
+        </button>
         {pages.map((page) => (
           <PageTab
             key={page.pageId}
@@ -255,9 +258,6 @@ const SchedulePage = () => {
             onDelete={() => handleDeletePage(page.pageId)}
           />
         ))}
-        <button onClick={() => setShowNewPageModal(true)} className="px-4 py-2 bg-blue-500 text-white hover:bg-blue-600">
-          + 새페이지
-        </button>
       </div>
 
       {/* 기능 버튼 영역 */}
@@ -279,9 +279,7 @@ const SchedulePage = () => {
         </button>
       </div>
       {showTimeModal && <SetTimeModal setShowTimeModal={setShowTimeModal} onApply={handleTimeApply} />}
-      {showNewPageModal && (
-        <NewPageModal nextPageId={nextPageId} onClose={() => setShowNewPageModal(false)} onCreate={handleCreatePage} />
-      )}
+      {showNewPageModal && <NewPageModal nextPageId={nextPageId} onClose={() => setShowNewPageModal(false)} onCreate={handleCreatePage} />}
       {dayOrTeacher ? (
         <div className="flex">
           {(["월", "화", "수", "목", "금", "토", "일"] as DayOfWeek[]).map((day) => (

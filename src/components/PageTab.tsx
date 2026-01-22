@@ -36,7 +36,7 @@ const PageTab = ({ page, isActive, canDelete, onClick, onRename, onDelete }: Pag
 
   return (
     <div
-      className={`relative px-4 py-2 border-t border-l border-r cursor-pointer ${
+      className={`relative px-4 py-2 border-t border-l border-r cursor-pointer shrink-0 min-w-10 max-w-50 ${
         isActive ? "bg-white border-b-2 border-b-white font-bold" : "bg-gray-200 border-b"
       }`}
       onClick={isEditing ? undefined : onClick}
@@ -55,9 +55,9 @@ const PageTab = ({ page, isActive, canDelete, onClick, onRename, onDelete }: Pag
         />
       ) : (
         <div className="flex items-center gap-2">
-          <span>{page.pageName}</span>
+          <span className="truncate">{page.pageName}</span>
           {canDelete && isHovering && (
-            <button onClick={handleDeleteClick} className="text-red-500 hover:text-red-700 font-bold">
+            <button onClick={handleDeleteClick} className="text-red-500 hover:text-red-700 font-bold flex-shrink-0">
               ×
             </button>
           )}
