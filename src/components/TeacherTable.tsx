@@ -1,42 +1,36 @@
-import TeacherCol from "./TeacherCol";
 import { useMemo } from "react";
 import { CiSquarePlus } from "react-icons/ci";
 import type { Teacher, DayOfWeek } from "../util/interfaces";
 
-interface TimeTableProps {
-  day: DayOfWeek;
+interface TeacherTableProps {
+  teacher: Teacher;
   teacherMode: boolean;
   timeMode: boolean;
-  teachers: Teacher[];
   timeSettings: {
     startHour: string;
     startMinute: string;
     interval: string;
     timeRows: number;
   };
-  onAddTeacher: () => void;
   onDeleteTeacher: (id: number) => void;
   onUpdateTeacherName: (id: number, name: string) => void;
   onUpdateScheduleCell: (teacherId: number, day: DayOfWeek, timeSlot: number, content: string) => void;
   onAddTimeRow: () => void;
   getCellContent: (teacherId: number, day: DayOfWeek, timeSlot: number) => string;
-  getTeacherName: (teacherId: number) => string;
 }
 
-const TimeTable = ({
-  day,
+const TeacherTable = ({
+  teacher,
   teacherMode,
   timeMode,
-  teachers,
   timeSettings,
-  onAddTeacher,
   onDeleteTeacher,
   onUpdateTeacherName,
   onUpdateScheduleCell,
   onAddTimeRow,
   getCellContent,
-  getTeacherName,
-}: TimeTableProps) => {
+}: TeacherTableProps) => {
+  const days: DayOfWeek[] = ["월", "화", "수", "목", "금", "토", "일"];
   const tempTime = ["1:00-1:30", "1:30-2:00", "2:00-2:30", "2:30-3:00", "3:00-3:30", "3:30-4:00", "4:00-4:30", "4:30-5:00"];
 
   const calculateTimes = useMemo(() => {
@@ -82,13 +76,20 @@ const TimeTable = ({
 
   return (
     <div className="flex ml-2 mt-2 mr-2">
-      <div className="firstCol flex flex-col w-24">
-        <div className="dayDiv border h-7">
-          <input value={day} className="w-full h-full outline-none" readOnly />
+      {/* 시간 열 (첫 번째 셀은 선생님 이름) */}
+      <div className="flex flex-col w-24">
+        <div className="border h-7 flex items-center">
+          {teacherMode ? (
+            <button className="w-full h-full" onClick={() => onDeleteTeacher(teacher.id)}>
+              X
+            </button>
+          ) : (
+            <input className="w-full h-full outline-none px-1" value={teacher.name} onChange={(e) => onUpdateTeacherName(teacher.id, e.target.value)} />
+          )}
         </div>
         {Array.from({ length: timeSettings.timeRows }).map((_, index) => (
-          <div key={index} className="border-x border-b h-7">
-            <input value={calculateTimes[index] || tempTime[index]} className="w-full h-full outline-none" readOnly />
+          <div key={index} className="border-x border-b h-7 flex items-center justify-center text-xs">
+            {calculateTimes[index] || tempTime[index]}
           </div>
         ))}
         {timeMode && (
@@ -97,26 +98,24 @@ const TimeTable = ({
           </button>
         )}
       </div>
-      {teachers.map((teacher) => (
-        <TeacherCol
-          key={teacher.id}
-          teacherId={teacher.id}
-          day={day}
-          teacherMode={teacherMode}
-          timeRows={timeSettings.timeRows}
-          teacherName={getTeacherName(teacher.id)}
-          onUpdateName={(name) => onUpdateTeacherName(teacher.id, name)}
-          onDelete={() => onDeleteTeacher(teacher.id)}
-          onUpdateCell={(timeSlot, content) => onUpdateScheduleCell(teacher.id, day, timeSlot, content)}
-          getCellContent={(timeSlot) => getCellContent(teacher.id, day, timeSlot)}
-        />
+
+      {/* 요일 열들 */}
+      {days.map((day) => (
+        <div key={day} className="flex flex-col w-24">
+          <div className="border h-7 flex items-center justify-center">{day}</div>
+          {Array.from({ length: timeSettings.timeRows }).map((_, timeSlot) => (
+            <div key={timeSlot} className="border-x border-b w-24 h-7">
+              <textarea
+                className="w-full h-full outline-none resize-none"
+                value={getCellContent(teacher.id, day, timeSlot)}
+                onChange={(e) => onUpdateScheduleCell(teacher.id, day, timeSlot, e.target.value)}
+              />
+            </div>
+          ))}
+        </div>
       ))}
-      {teacherMode && (
-        <button className="w-10 flex justify-center mr-10" onClick={onAddTeacher}>
-          <CiSquarePlus size={32} />
-        </button>
-      )}
     </div>
   );
 };
-export default TimeTable;
+
+export default TeacherTable;
