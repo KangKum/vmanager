@@ -26,4 +26,22 @@ interface ScheduleCell {
   content: string;
 }
 
-export type { IClassTable, IStudentRowsInClassTable, Teacher, DayOfWeek, ScheduleCell };
+// 시간표 페이지 데이터 (여러 페이지 관리용)
+interface SchedulePageData {
+  pageId: number;
+  pageName: string;
+  teachers: Teacher[];
+  nextTeacherId: number;
+  schedules: ScheduleCell[];
+  timeSettings: {
+    startHour: string;
+    startMinute: string;
+    interval: string;
+    timeRows: number;
+  };
+  dayDates: Record<DayOfWeek, string>;
+}
+
+type CreatePageType = "empty" | "copy";
+
+export type { IClassTable, IStudentRowsInClassTable, Teacher, DayOfWeek, ScheduleCell, SchedulePageData, CreatePageType };
