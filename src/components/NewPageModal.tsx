@@ -1,14 +1,14 @@
 import { useState } from "react";
+import Overlay from "./Overlay";
 import type { CreatePageType } from "../util/interfaces";
 
 interface NewPageModalProps {
-  nextPageId: number;
   onClose: () => void;
   onCreate: (name: string, type: CreatePageType) => void;
 }
 
-const NewPageModal = ({ nextPageId, onClose, onCreate }: NewPageModalProps) => {
-  const [pageName, setPageName] = useState(`시간표${nextPageId + 1}`);
+const NewPageModal = ({ onClose, onCreate }: NewPageModalProps) => {
+  const [pageName, setPageName] = useState("");
   const [pageType, setPageType] = useState<CreatePageType>("empty");
 
   const handleCreate = () => {
@@ -20,8 +20,10 @@ const NewPageModal = ({ nextPageId, onClose, onCreate }: NewPageModalProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96" onClick={(e) => e.stopPropagation()}>
+    <>
+      <Overlay onClose={onClose} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+        <div className="bg-white p-6 rounded-lg shadow-lg w-96 pointer-events-auto">
         <h2 className="text-xl font-bold mb-4">새 페이지 만들기</h2>
 
         {/* 페이지 이름 입력 */}
@@ -30,10 +32,11 @@ const NewPageModal = ({ nextPageId, onClose, onCreate }: NewPageModalProps) => {
           <input
             type="text"
             className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="페이지 이름"
+            placeholder="페이지 이름을 입력하세요"
             value={pageName}
             onChange={(e) => setPageName(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleCreate()}
+            autoFocus
           />
         </div>
 
@@ -75,8 +78,9 @@ const NewPageModal = ({ nextPageId, onClose, onCreate }: NewPageModalProps) => {
             확인
           </button>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

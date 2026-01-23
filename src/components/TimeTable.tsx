@@ -2,7 +2,8 @@ import TeacherCol from "./TeacherCol";
 import CalendarModal from "./CalendarModal";
 import { useMemo, useState } from "react";
 import { CiSquarePlus } from "react-icons/ci";
-import type { Teacher, DayOfWeek } from "../util/interfaces";
+import type { Teacher, DayOfWeek, ScheduleCell } from "../util/interfaces";
+import { useTableNavigation } from "../hooks/useTableNavigation";
 
 interface TimeTableProps {
   day: DayOfWeek;
@@ -16,15 +17,25 @@ interface TimeTableProps {
     timeRows: number;
   };
   dayDate: string;
+  schedules: ScheduleCell[];
+  isActive: boolean;
   onAddTeacher: () => void;
   onDeleteTeacher: (id: number) => void;
   onUpdateTeacherName: (id: number, name: string) => void;
   onUpdateScheduleCell: (teacherId: number, day: DayOfWeek, timeSlot: number, content: string) => void;
+  onClearMultipleCells: (cells: Array<{ teacherId: number; day: DayOfWeek; timeSlot: number }>) => void;
   onAddTimeRow: () => void;
   onDeleteTimeRow: (timeSlot: number) => void;
   onUpdateDayDate: (date: string) => void;
-  getCellContent: (teacherId: number, day: DayOfWeek, timeSlot: number) => string;
   getTeacherName: (teacherId: number) => string;
+  onSelectionChange: (selection: {
+    teacherId: number;
+    day: DayOfWeek;
+    startRow: number;
+    endRow: number;
+    startCol: number;
+    endCol: number;
+  } | null) => void;
 }
 
 const TimeTable = ({
@@ -34,17 +45,117 @@ const TimeTable = ({
   teachers,
   timeSettings,
   dayDate,
+  schedules,
+  isActive,
   onAddTeacher,
   onDeleteTeacher,
   onUpdateTeacherName,
   onUpdateScheduleCell,
+  onClearMultipleCells,
   onAddTimeRow,
   onDeleteTimeRow,
   onUpdateDayDate,
-  getCellContent,
   getTeacherName,
+  onSelectionChange,
 }: TimeTableProps) => {
   const [showCalendar, setShowCalendar] = useState(false);
+
+  const navigation = useTableNavigation({
+    rows: timeSettings.timeRows + 1, // +1은 선생님 이름 행
+    cols: teachers.length,
+    isTextarea: true,
+    isActive,
+    onClearCells: (cells) => {
+      // 선생님 이름 행과 시간표 셀 분리
+      const teacherNameUpdates: number[] = [];
+      const scheduleCellsToDelete: Array<{ teacherId: number; day: DayOfWeek; timeSlot: number }> = [];
+
+      cells.forEach(({ row, col }) => {
+        if (col >= 0 && col < teachers.length) {
+          const teacher = teachers[col];
+
+          if (row === 0) {
+            // 선생님 이름 행
+            teacherNameUpdates.push(teacher.id);
+          } else if (row >= 1 && row <= timeSettings.timeRows) {
+            // 시간표 셀
+            const timeSlot = row - 1;
+            scheduleCellsToDelete.push({ teacherId: teacher.id, day, timeSlot });
+          }
+        }
+      });
+
+      // 선생님 이름 업데이트
+      teacherNameUpdates.forEach((teacherId) => {
+        onUpdateTeacherName(teacherId, '');
+      });
+
+      // 시간표 셀 한 번에 삭제
+      if (scheduleCellsToDelete.length > 0) {
+        onClearMultipleCells(scheduleCellsToDelete);
+      }
+    },
+    onSelectionChange: (range) => {
+      if (!range) {
+        onSelectionChange(null);
+        return;
+      }
+
+      // TimeTable 좌표계에서 SchedulePage 형식으로 변환
+      const teacherId = teachers[range.start.col]?.id;
+      if (teacherId === undefined) {
+        onSelectionChange(null);
+        return;
+      }
+
+      onSelectionChange({
+        teacherId,
+        day,
+        startRow: Math.min(range.start.row, range.end.row),
+        endRow: Math.max(range.start.row, range.end.row),
+        startCol: range.start.col,
+        endCol: range.end.col
+      });
+    },
+    getMergeInfo: (row, col) => {
+      // row 0은 선생님 이름 (병합 안됨)
+      if (row === 0 || col < 0 || col >= teachers.length) {
+        return { isMerged: false, isMainCell: false, mainRow: row, rowspan: 1 };
+      }
+
+      const teacher = teachers[col];
+      const timeSlot = row - 1;
+
+      const cell = schedules.find(c =>
+        c.teacherId === teacher.id &&
+        c.day === day &&
+        c.timeSlot === timeSlot
+      );
+
+      if (cell?.rowspan && cell.rowspan > 1) {
+        // 메인 셀
+        return { isMerged: true, isMainCell: true, mainRow: row, rowspan: cell.rowspan };
+      } else if (cell?.isMergedChild) {
+        // 자식 셀 - 메인 셀 찾기
+        for (let t = timeSlot - 1; t >= 0; t--) {
+          const mainCell = schedules.find(c =>
+            c.teacherId === teacher.id &&
+            c.day === day &&
+            c.timeSlot === t &&
+            c.rowspan &&
+            c.rowspan > 1
+          );
+          if (mainCell && mainCell.rowspan && t + mainCell.rowspan > timeSlot) {
+            return { isMerged: true, isMainCell: false, mainRow: t + 1, rowspan: mainCell.rowspan };
+          }
+        }
+      }
+
+      return { isMerged: false, isMainCell: false, mainRow: row, rowspan: 1 };
+    },
+    shouldSkipRow: (row) => row === 0 // 선생님 이름 행은 키보드로 접근 불가
+  });
+
   // 기본 시간 배열 동적 생성 (1:00부터 30분 간격)
   const generateDefaultTimes = useMemo(() => {
     const times = [];
@@ -112,7 +223,7 @@ const TimeTable = ({
   }, [timeSettings]);
 
   return (
-    <div className="flex ml-2 mt-2 mr-2">
+    <div className="flex ml-2 mt-2 mr-2" data-table-id={`day-${day}`}>
       {showCalendar && (
         <CalendarModal
           onSelectDate={(date) => {
@@ -145,7 +256,7 @@ const TimeTable = ({
           </button>
         )}
       </div>
-      {teachers.map((teacher) => (
+      {teachers.map((teacher, colIndex) => (
         <TeacherCol
           key={teacher.id}
           teacherId={teacher.id}
@@ -153,10 +264,12 @@ const TimeTable = ({
           teacherMode={teacherMode}
           timeRows={timeSettings.timeRows}
           teacherName={getTeacherName(teacher.id)}
+          colIndex={colIndex}
+          navigation={navigation}
+          schedules={schedules}
           onUpdateName={(name) => onUpdateTeacherName(teacher.id, name)}
           onDelete={() => onDeleteTeacher(teacher.id)}
           onUpdateCell={(timeSlot, content) => onUpdateScheduleCell(teacher.id, day, timeSlot, content)}
-          getCellContent={(timeSlot) => getCellContent(teacher.id, day, timeSlot)}
         />
       ))}
       {teacherMode && (

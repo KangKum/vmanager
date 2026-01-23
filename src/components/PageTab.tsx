@@ -1,8 +1,7 @@
 import { useState } from "react";
-import type { SchedulePageData } from "../util/interfaces";
 
 interface PageTabProps {
-  page: SchedulePageData;
+  page: { pageId: number; pageName: string };
   isActive: boolean;
   canDelete: boolean;
   onClick: () => void;
@@ -57,7 +56,7 @@ const PageTab = ({ page, isActive, canDelete, onClick, onRename, onDelete }: Pag
         <div className="flex items-center gap-2">
           <span className="truncate">{page.pageName}</span>
           {canDelete && isHovering && (
-            <button onClick={handleDeleteClick} className="text-red-500 hover:text-red-700 font-bold flex-shrink-0">
+            <button onClick={handleDeleteClick} className="text-red-500 hover:text-red-700 font-bold shrink-0">
               ×
             </button>
           )}

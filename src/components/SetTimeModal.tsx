@@ -32,7 +32,7 @@ const SetTimeModal = ({
 
   return (
     <>
-      <Overlay setShowTimeModal={setShowTimeModal} />
+      <Overlay onClose={() => setShowTimeModal(false)} />
       <div className="w-80 h-60 bg-white border-2 rounded p-2 fixed z-50 top-20 left-20 flex flex-col justify-center items-center gap-4">
         <div className="flex justify-center items-center">
           <div>시작시간</div>

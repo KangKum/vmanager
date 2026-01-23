@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Overlay from "./Overlay";
 
 interface CalendarModalProps {
   onSelectDate: (date: string) => void;
@@ -49,8 +50,10 @@ const CalendarModal = ({ onSelectDate, onClose }: CalendarModalProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white p-6 rounded-lg shadow-lg" onClick={(e) => e.stopPropagation()}>
+    <>
+      <Overlay onClose={onClose} />
+      <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+        <div className="bg-white p-6 rounded-lg shadow-lg pointer-events-auto">
         {/* 헤더: 년월 선택 */}
         <div className="flex justify-between items-center mb-4">
           <button onClick={handlePrevMonth} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
@@ -97,8 +100,9 @@ const CalendarModal = ({ onSelectDate, onClose }: CalendarModalProps) => {
             닫기
           </button>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

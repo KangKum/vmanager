@@ -1,33 +1,78 @@
 import StudentRowInClassTable from "./StudentRowInClassTable";
 import { TiDeleteOutline } from "react-icons/ti";
-import { useState } from "react";
 import type { IStudentRowsInClassTable } from "../util/interfaces.ts";
+import { useTableNavigation } from "../hooks/useTableNavigation";
 
-const ClassTable = ({
-  tableId,
-  level,
-  currentLevel,
-  onDeleteClassTable,
-  onLevelChange,
-}: {
+interface ClassTableProps {
   tableId: number;
   level: string;
   currentLevel: number;
+  className: string;
+  teacher: string;
   onDeleteClassTable: () => void;
   onLevelChange: (newLevel: number) => void;
-}) => {
-  const [studentRows, setStudentRows] = useState<IStudentRowsInClassTable[]>([]);
-  const [nextStudentId, setNextStudentId] = useState(0);
+  onClassInfoChange: (className: string, teacher: string) => void;
+  students: IStudentRowsInClassTable[];
+  nextStudentId: number;
+  onStudentsChange: (students: IStudentRowsInClassTable[], nextStudentId: number) => void;
+}
+
+const ClassTable = ({
+  tableId: _tableId,
+  level,
+  currentLevel,
+  className,
+  teacher,
+  onDeleteClassTable,
+  onLevelChange,
+  onClassInfoChange,
+  students,
+  nextStudentId,
+  onStudentsChange
+}: ClassTableProps) => {
+  const navigation = useTableNavigation({
+    rows: students.length,
+    cols: 3,
+    onClearCells: (cells) => {
+      const fieldMap = ['name', 'school', 'grade'] as const;
+      const updatedStudents = [...students];
+
+      cells.forEach(({ row, col }) => {
+        if (row >= 0 && row < updatedStudents.length && col >= 0 && col < 3) {
+          const field = fieldMap[col];
+          updatedStudents[row] = { ...updatedStudents[row], [field]: '' };
+        }
+      });
+
+      onStudentsChange(updatedStudents, nextStudentId);
+    }
+  });
 
   const handleAddStudent = () => {
-    setStudentRows((prev) => [...prev, { studentId: nextStudentId, idx: prev.length, name: "", school: "", grade: "" }]);
-    setNextStudentId((prev) => prev + 1);
+    const newStudent: IStudentRowsInClassTable = {
+      studentId: nextStudentId,
+      idx: students.length,
+      name: "",
+      school: "",
+      grade: ""
+    };
+    onStudentsChange([...students, newStudent], nextStudentId + 1);
   };
 
   const handleDeleteStudent = (id: number) => {
     if (confirm("학생을 삭제하시겠습니까?")) {
-      setStudentRows((prev) => prev.filter((student) => student.studentId !== id));
+      onStudentsChange(
+        students.filter((student) => student.studentId !== id),
+        nextStudentId
+      );
     }
+  };
+
+  const handleUpdateStudent = (id: number, field: keyof IStudentRowsInClassTable, value: string) => {
+    onStudentsChange(
+      students.map(s => s.studentId === id ? { ...s, [field]: value } : s),
+      nextStudentId
+    );
   };
 
   const handleLevelClick = () => {
@@ -44,14 +89,24 @@ const ClassTable = ({
           {currentLevel}
         </button>
         <div className="w-[80%] h-full flex justify-center items-center">
-          <input className="w-full h-full text-center border-0 outline-none" placeholder="반이름" />
+          <input
+            className="w-full h-full text-center border-0 outline-none"
+            placeholder="반이름"
+            value={className}
+            onChange={(e) => onClassInfoChange(e.target.value, teacher)}
+          />
         </div>
         <button className="w-[10%] h-full font-bold flex justify-center items-center" onClick={onDeleteClassTable}>
           <TiDeleteOutline />
         </button>
       </div>
       <div className="border-b border-x h-8 flex justify-center items-center">
-        <input className="w-full h-full text-center border-0 outline-none" placeholder="수업시간/담당선생님" />
+        <input
+          className="w-full h-full text-center border-0 outline-none"
+          placeholder="수업시간/담당선생님"
+          value={teacher}
+          onChange={(e) => onClassInfoChange(className, e.target.value)}
+        />
       </div>
       <div className="flex border-b border-x h-7">
         <div className="border-r w-[10%] h-full flex justify-center items-center">#</div>
@@ -60,13 +115,15 @@ const ClassTable = ({
         <div className="border-r w-[20%] h-full flex justify-center items-center">학년</div>
         <div className="w-[10%] h-full flex justify-center items-center"></div>
       </div>
-      {studentRows.map((student, index) => (
+      {students.map((student, index) => (
         <StudentRowInClassTable
           key={student.studentId}
-          tableId={tableId}
-          studentId={student.studentId}
           idx={index}
+          student={student}
+          rowIndex={index}
+          navigation={navigation}
           onDeleteStudentRow={() => handleDeleteStudent(student.studentId)}
+          onUpdate={(field, value) => handleUpdateStudent(student.studentId, field, value)}
         />
       ))}
       <button className="border-b border-x bg-gray-300" onClick={handleAddStudent}>
